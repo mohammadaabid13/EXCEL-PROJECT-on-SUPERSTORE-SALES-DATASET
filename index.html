@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperStore Sales Analysis & Strategic Report</title>
+    <style>
+        :root {
+            --bg-dark: #121820;
+            --card-bg: #1c2531;
+            --card-border: #2e3c4e;
+            --accent-blue: #38bdf8;
+            --accent-green: #34d399;
+            --accent-red: #f87171;
+            --accent-amber: #fbbf24;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Slide Deck Container */
+        .deck-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide {
+            display: none;
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            flex-direction: column;
+            justify-content: space-between;
+            animation: fadeIn 0.4s ease-in-out;
+            position: absolute;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Slide Header */
+        .slide-header {
+            border-bottom: 2px solid var(--card-border);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .slide-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .slide-subtitle {
+            font-size: 0.95rem;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .badge {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Slide Content Layouts */
+        .slide-body {
+            flex: 1;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            width: 100%;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            width: 100%;
+        }
+
+        /* Cards & Metric Blocks */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .metric-big {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .text-green { color: var(--accent-green); }
+        .text-red { color: var(--accent-red); }
+        .text-blue { color: var(--accent-blue); }
+        .text-amber { color: var(--accent-amber); }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 0.95rem;
+        }
+
+        /* Callout Boxes */
+        .callout {
+            padding: 16px;
+            border-left: 4px solid var(--accent-blue);
+            background: rgba(56, 189, 248, 0.05);
+            border-radius: 0 8px 8px 0;
+            margin-top: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .callout.danger {
+            border-left-color: var(--accent-red);
+            background: rgba(248, 113, 113, 0.05);
+        }
+
+        .callout.success {
+            border-left-color: var(--accent-green);
+            background: rgba(52, 211, 153, 0.05);
+        }
+
+        /* Navigation Controls */
+        .nav-controls {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .nav-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent-blue);
+            color: #000;
+        }
+
+        .slide-counter {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Slide Specific Custom Styles */
+        .hero-title {
+            font-size: 3.2rem;
+            line-height: 1.1;
+            margin-bottom: 16px;
+            font-weight: 800;
+        }
+
+        ul.styled-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul.styled-list li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 12px;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+
+        ul.styled-list li::before {
+            content: "•";
+            color: var(--accent-blue);
+            font-size: 1.5rem;
+            position: absolute;
+            left: 0;
+            top: -4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="deck-container">
+
+    <!-- SLIDE 1: Title / Title Brief -->
+    <div class="slide active">
+        <div>
+            <div class="slide-subtitle">Senior Business Analyst Report</div>
+            <h1 class="hero-title">SuperStore Sales & Strategic Margin Recovery</h1>
+            <p style="color: var(--text-muted); font-size: 1.2rem; max-width: 700px;">
+                Diagnostic briefing detailing revenue distribution, margin friction points, and actionable strategies for executive decision-making.
+            </p>
+        </div>
+        
+        <div class="grid-3" style="margin-top: 40px;">
+            <div class="card">
+                <div class="metric-label">Total Aggregated Sales</div>
+                <div class="metric-big text-blue">$1.92M</div>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Across 1,385 total unique orders</p>
+            </div>
+            <div class="card">
+                <div class="metric-label">Net Operating Profit</div>
+                <div class="metric-big text-green">$224.1K</div>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Overall profit margin of 11.64%</p>
+            </div>
+            <div class="card">
+                <div class="metric-label">Primary Friction Point</div>
+                <div class="metric-big text-red">-4.04%</div>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Net profit deficit in the South territory</p>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--card-border); padding-top: 16px;">
+            <span style="color: var(--text-muted); font-size: 0.85rem;">Author: Senior Data Analyst</span>
+            <span class="badge">SuperStore Dataset 2015</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: Regional Performance -->
+    <div class="slide">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">01 / Regional Diagnostics</div>
+                <div class="slide-title">Regional Profitability Disparity</div>
+            </div>
+            <span class="badge">Geography Analysis</span>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Region</th>
+                                <th>Total Sales</th>
+                                <th>Net Profit</th>
+                                <th>Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>East</strong></td>
+                                <td>$592,171.49</td>
+                                <td class="text-green">$85,291.40</td>
+                                <td>14.40%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>West</strong></td>
+                                <td>$526,776.57</td>
+                                <td class="text-green">$75,844.79</td>
+                                <td>14.40%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Central</strong></td>
+                                <td>$448,284.70</td>
+                                <td class="text-green">$77,365.47</td>
+                                <td class="text-green"><strong>17.26%</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>South</strong></td>
+                                <td>$357,105.12</td>
+                                <td class="text-red">-$14,424.05</td>
+                                <td class="text-red"><strong>-4.04%</strong></td>
+                            </tr>
+                            <tr>
+                                <td><span style="color: var(--text-muted);">North</span></td>
+                                <td>$0.00</td>
+                                <td>$0.00</td>
+                                <td>N/A</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <div class="callout">
+                        <strong>East & West Engines:</strong> East leads total volume at 30.77% ($592K) with an industry-leading average order value of $1,833.35. West demonstrates matching margin efficiency (14.40%).
+                    </div>
+                    <div class="callout success">
+                        <strong>Central Efficiency Model:</strong> Highest margin performance enterprise-wide (17.26%) driven by optimized freight logistics and favorable product mix.
+                    </div>
+                    <div class="callout danger">
+                        <strong>South Territory Deficit:</strong> Generates $357.1K in sales (18.56% volume) but operates at a direct net loss due to severe shipping unit costs and aggressive discounting.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: Category & Sub-Category Analysis -->
+    <div class="slide">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">02 / Product Portfolio</div>
+                <div class="slide-title">Category Margin Variance & Bleeding Inventory</div>
+            </div>
+            <span class="badge">Product Performance</span>
+        </div>
+        <div class="slide-body">
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="margin-bottom: 12px;">Category Summary</h3>
+                    <ul class="styled-list">
+                        <li><strong>Office Supplies:</strong> <span class="text-green">$89,525.01 Profit</span> (16.2% Margin) on $551.4K Sales. Highest overall margin efficiency.</li>
+                        <li><strong>Technology:</strong> <span class="text-blue">$75,303.16 Profit</span> (10.6% Margin) on $712.3K Sales. Largest revenue generator across categories.</li>
+                        <li><strong>Furniture:</strong> <span class="text-amber">$59,249.45 Profit</span> (9.0% Margin) on $660.7K Sales. Underperforms due to heavy sub-category drags.</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="card" style="margin-bottom: 12px; border-left: 4px solid var(--accent-green);">
+                        <div style="font-weight: 700;" class="text-green">Top Contributor</div>
+                        <div style="font-size: 1.1rem; margin-top: 4px;">Binders & Accessories</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+                            Generated <strong>$59,296.39</strong> net profit on $185.9K sales.
+                        </div>
+                    </div>
+                    <div class="card" style="border-left: 4px solid var(--accent-red);">
+                        <div style="font-weight: 700;" class="text-red">Critical Loss Leader</div>
+                        <div style="font-size: 1.1rem; margin-top: 4px;">Tables Sub-Category</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+                            Eroded <strong>-$7,240.07</strong> net profit on $193.8K sales. Secondary losses in Rubber Bands, Scissors, Envelopes & Bookcases exceed -$4.9K combined.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: Monthly Trends & Top Performers -->
+    <div class="slide">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">03 / Key Operational Highlights</div>
+                <div class="slide-title">Peak Growth Benchmarks & Star Assets</div>
+            </div>
+            <span class="badge">H1 2015 Benchmark</span>
+        </div>
+        <div class="slide-body">
+            <div class="grid-3">
+                <div class="card">
+                    <div class="metric-label">June 2015 Revenue</div>
+                    <div class="metric-big text-green">$355.4K</div>
+                    <div class="callout success" style="margin-top: 10px;">
+                        +15.92% MoM growth over May ($306.6K), marking peak monthly output for H1.
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="metric-label">Top Individual SKU</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: #fff; margin: 12px 0;">
+                        Fellowes PB500 Electric Punch Plastic Comb Binding Machine
+                    </div>
+                    <div class="metric-big text-blue" style="font-size: 2rem;">$69,013.48</div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Single highest revenue driver in dataset.</p>
+                </div>
+                <div class="card">
+                    <div class="metric-label">Primary Risk Factor</div>
+                    <div class="metric-big text-red">South Region</div>
+                    <div class="callout danger" style="margin-top: 10px;">
+                        Driven by Telephones (-$12.9K), Envelopes (-$4.3K), and Tables (-$3.0K) in the region.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: Strategic Action Plan -->
+    <div class="slide">
+        <div class="slide-header">
+            <div>
+                <div class="slide-subtitle">04 / Executive Action Plan</div>
+                <div class="slide-title">Key Strategic Recommendations</div>
+            </div>
+            <span class="badge">Executive Roadmap</span>
+        </div>
+        <div class="slide-body">
+            <div class="grid-3">
+                <div class="card" style="border-top: 4px solid var(--accent-red);">
+                    <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">1. Restructure South Region</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+                        Audit freight logistics and cap discount structures on loss-leading South inventory (Telephones & Envelopes) to eliminate the -4.04% deficit and protect its $357.1K sales base.
+                    </p>
+                </div>
+                <div class="card" style="border-top: 4px solid var(--accent-amber);">
+                    <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">2. Rationalize Sub-Categories</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+                        Renegotiate vendor contracts or adjust retail pricing on systemic loss-making product lines—primarily Tables (-$7.2K loss), Rubber Bands, and Scissors—to halt gross margin bleed enterprise-wide.
+                    </p>
+                </div>
+                <div class="card" style="border-top: 4px solid var(--accent-green);">
+                    <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">3. Scale High-Margin Assets</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+                        Expand promotional backing for Office Machines ($318.1K total revenue) and Binders ($59.3K profit), deploying Central's 17.26% margin efficiency model across East and West operations.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--card-border); padding-top: 12px; margin-top: 10px;">
+            *Note: Technical audit required for "North Region" ($0.00 entry) to determine if it reflects an ETL pipeline ingestion error or an unpenetrated market segment.
+        </div>
+    </div>
+
+</div>
+
+<!-- Navigation Bar -->
+<div class="nav-controls">
+    <button class="nav-btn" onclick="prevSlide()">Previous</button>
+    <span class="slide-counter" id="counter">Slide 1 of 5</span>
+    <button class="nav-btn" onclick="nextSlide()">Next</button>
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('counter');
+
+    function updateSlides() {
+        slides.forEach((slide, index) => {
+            slide.classList.remove('active');
+            if (index === currentSlide) {
+                slide.classList.add('active');
+            }
+        });
+        counter.textContent = `Slide ${currentSlide + 1} of ${slides.length}`;
+    }
+
+    function nextSlide() {
+        if (currentSlide < slides.length - 1) {
+            currentSlide++;
+            updateSlides();
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateSlides();
+        }
+    }
+
+    // Keyboard Arrow Key Navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+            nextSlide();
+        } else if (e.key === 'ArrowLeft') {
+            prevSlide();
+        }
+    });
+</script>
+
+</body>
+</html>
